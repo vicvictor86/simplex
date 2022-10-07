@@ -2,10 +2,15 @@ from msilib import RadioButtonGroup
 from re import A
 from tkinter import *
 
+from matplotlib.pyplot import margins
+
 class Application:
     def __init__(self, master=None):
 
         activeContainers = []
+        
+
+        listValues = []
         
         objProblem = IntVar()
         numberVariables = IntVar()
@@ -28,6 +33,9 @@ class Application:
         def numberOfConstraints():
             return numberConstraints
 
+        def functionCoefficients():
+            return listValues
+
         def modelProblem():
             clearActiveElements()
 
@@ -36,22 +44,48 @@ class Application:
             print(numberOfConstraints().get())
             
             exp = "¹²³⁴⁵⁶⁷⁸⁹"
+
+            
+
+            self.container = Canvas(self.secondContainer, width=200, height=20)
+            self.container.pack(side=LEFT)
             
             for i in range(0, numberOfVariables().get()):
 
-                self.container = Canvas(self.secondContainer, width=200, height=20)
-                self.container.pack(side=LEFT)
+                if(i == 0):
+                    self.variableNumberLabel = Label(self.container, text="Variáveis", height=2, width=20)
+                    self.variableNumberLabel["font"] = ("Arial", "12", "bold")
+                    self.variableNumberLabel.grid(row=1, column=0)
+                    
+                    self.variableNumberLabel = Label(self.container, text="Função Objetivo", height=2, width=20)
+                    self.variableNumberLabel["font"] = ("Arial", "12", "bold")
+                    self.variableNumberLabel.grid(row=2, column=0)
 
                 self.variableNumberLabel = Label(self.container, text="x"+exp[i], font=self.standardFont, height=2, width=6)
                 self.variableNumberLabel["font"] = ("Arial", "14", "bold")
-                self.variableNumberLabel.pack()
+                self.variableNumberLabel.grid(row=1, column=i+1)
                 
                 self.variableNumber = Entry(self.container)
+                aux = IntVar()
+                listValues.append(aux)
                 self.variableNumber["width"] = 5
                 self.variableNumber["font"] = self.standardFont
-                self.variableNumber["textvariable"] = numberVariables
+                self.variableNumber["textvariable"] = listValues[i]
                 self.variableNumber["validate"] = "key"
-                self.variableNumber.pack(side=TOP)
+                self.variableNumber.grid(row=2, column=i+1)
+            
+            self.continueButton = Button(self.fifthContainer)
+            self.continueButton["text"] = "Resolver Problema"
+            self.continueButton["font"] = ("Calibri", "12")
+            self.continueButton["height"] = 18
+            self.continueButton["width"] = 16
+            self.continueButton["command"] = solveProblem
+            self.continueButton.pack()
+
+        def solveProblem():
+            clearActiveElements()
+            for i in functionCoefficients():
+                print(i.get())
 
         def initialScreen():
             self.max = Radiobutton(self.secondContainer, 
@@ -96,7 +130,7 @@ class Application:
 
             self.continueButton = Button(self.fifthContainer)
             self.continueButton["text"] = "Continuar"
-            self.continueButton["font"] = ("Calibri", "10")
+            self.continueButton["font"] = ("Calibri", "12")
             self.continueButton["width"] = 12
             self.continueButton["command"] = modelProblem
             self.continueButton.pack()
