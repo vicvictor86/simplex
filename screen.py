@@ -8,9 +8,10 @@ class Application:
     def __init__(self, master=None):
 
         activeContainers = []
-        
 
-        listValues = []
+        valuesFunctionObjective = []
+        valuesConstraint = []
+        vectorB = []
         
         objProblem = IntVar()
         numberVariables = IntVar()
@@ -34,7 +35,7 @@ class Application:
             return numberConstraints
 
         def functionCoefficients():
-            return listValues
+            return valuesFunctionObjective
 
         def modelProblem():
             clearActiveElements()
@@ -45,39 +46,88 @@ class Application:
             
             exp = "¹²³⁴⁵⁶⁷⁸⁹"
 
+            self.firstCanva = Canvas(self.secondContainer, width=400, height=20)
+            self.firstCanva.pack(side=LEFT)
             
+            for i in range(0, numberOfVariables().get() + 2):
 
-            self.container = Canvas(self.secondContainer, width=200, height=20)
-            self.container.pack(side=LEFT)
-            
-            for i in range(0, numberOfVariables().get()):
-
-                if(i == 0):
-                    self.variableNumberLabel = Label(self.container, text="Variáveis", height=2, width=20)
+                if i == 0:
+                    self.variableNumberLabel = Label(self.firstCanva, text="Variáveis", height=2, width=20)
                     self.variableNumberLabel["font"] = ("Arial", "12", "bold")
                     self.variableNumberLabel.grid(row=1, column=0)
                     
-                    self.variableNumberLabel = Label(self.container, text="Função Objetivo", height=2, width=20)
-                    self.variableNumberLabel["font"] = ("Arial", "12", "bold")
+                    self.variableNumberLabel = Label(self.firstCanva, text="Função Objetivo", height=2, width=20)
+                    self.variableNumberLabel["font"] = ("Arial", "12")
                     self.variableNumberLabel.grid(row=2, column=0)
 
-                self.variableNumberLabel = Label(self.container, text="x"+exp[i], font=self.standardFont, height=2, width=6)
-                self.variableNumberLabel["font"] = ("Arial", "14", "bold")
-                self.variableNumberLabel.grid(row=1, column=i+1)
-                
-                self.variableNumber = Entry(self.container)
-                aux = IntVar()
-                listValues.append(aux)
-                self.variableNumber["width"] = 5
-                self.variableNumber["font"] = self.standardFont
-                self.variableNumber["textvariable"] = listValues[i]
-                self.variableNumber["validate"] = "key"
-                self.variableNumber.grid(row=2, column=i+1)
+                if i < numberOfVariables().get():
+                    self.variableNumberLabel = Label(self.firstCanva, text="x"+exp[i], font=self.standardFont, height=2, width=6)
+                    self.variableNumberLabel["font"] = ("Arial", "14", "bold")
+                    self.variableNumberLabel.grid(row=1, column=i+1)
+                    
+                    self.variableNumber = Entry(self.firstCanva)
+                    self.variableNumber["justify"] = "center"
+                    aux = IntVar()
+                    valuesFunctionObjective.append(aux)
+                    self.variableNumber["width"] = 5
+                    self.variableNumber["font"] = self.standardFont
+                    self.variableNumber["textvariable"] = valuesFunctionObjective[i]
+                    self.variableNumber.grid(row=2, column=i+1)
+                elif i == numberOfVariables().get():
+                    self.variableNumberLabel = Label(self.firstCanva, text="Relação", font=self.standardFont, height=2, width=6)
+                    self.variableNumberLabel["font"] = ("Arial", "12", "bold")
+                    self.variableNumberLabel["width"] = 10
+                    self.variableNumberLabel.grid(row=1, column=i+1)
+                elif i == numberOfVariables().get() + 1:
+                    self.variableNumberLabel = Label(self.firstCanva, text="Lado Direito", font=self.standardFont, height=2, width=6)
+                    self.variableNumberLabel["font"] = ("Arial", "12", "bold")
+                    self.variableNumberLabel["width"] = 10
+                    self.variableNumberLabel.grid(row=1, column=i+1)
+
+            for i in range(0, numberOfConstraints().get()):
+                self.variableNumberLabel = Label(self.firstCanva, text=f"Restrição {i+1}", height=2, width=20)
+                self.variableNumberLabel["font"] = ("Arial", "12")
+                self.variableNumberLabel.grid(row=3+i, column=0)
+
+                valuesConstraint.append([])
+
+                for j in range(0, numberOfVariables().get() + 2):
+                    if(j < numberOfVariables().get()):
+                        valuesConstraint[i].append(IntVar())
+                        self.variableNumber = Entry(self.firstCanva)
+                        aux = IntVar()
+                        self.variableNumber["width"] = 5
+                        self.variableNumber["font"] = self.standardFont
+                        self.variableNumber["textvariable"] = valuesConstraint[i][j]
+                        self.variableNumber["justify"] = "center"
+                        
+                        self.variableNumber.grid(row=3+i, column=j+1)
+                    elif(j == numberOfVariables().get()):
+                        mb =  Menubutton ( self.firstCanva, text="≤", relief=RAISED )
+                        mb.grid(row=3+i, column=j+1)
+                        mb.menu =  Menu ( mb, tearoff = 0 )
+                        mb["menu"] =  mb.menu
+
+                        # biggerEqual = IntVar()
+                        # equal = IntVar()
+                        # mb.menu.add_checkbutton ( label="≥", variable=biggerEqual )
+                        # mb.menu.add_checkbutton ( label="=", variable=equal )
+                    elif(j == numberOfVariables().get() + 1):
+                        self.variableNumber = Entry(self.firstCanva)
+                        aux = IntVar()
+                        vectorB.append(aux)
+                        self.variableNumber["width"] = 5
+                        self.variableNumber["font"] = self.standardFont
+                        self.variableNumber["textvariable"] = vectorB[i]
+                        self.variableNumber["justify"] = "center"
+                        self.variableNumber.grid(row=3+i, column=j+1)
+
+
             
-            self.continueButton = Button(self.fifthContainer)
+            self.continueButton = Button(self.thirdContainer)
             self.continueButton["text"] = "Resolver Problema"
             self.continueButton["font"] = ("Calibri", "12")
-            self.continueButton["height"] = 18
+            self.continueButton["height"] = 2
             self.continueButton["width"] = 16
             self.continueButton["command"] = solveProblem
             self.continueButton.pack()
@@ -181,7 +231,10 @@ class Application:
 
 
 root = Tk()
-root.geometry("800x600")
+width= root.winfo_screenwidth()  
+height= root.winfo_screenheight() 
+root.geometry("%dx%d" % (width, height)) 
+root.state(newstate="zoomed")
 root.title('Método Simplex')
 Application(root)
 root.mainloop()
