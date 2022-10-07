@@ -1,9 +1,107 @@
 from msilib import RadioButtonGroup
+from re import A
 from tkinter import *
 
 class Application:
     def __init__(self, master=None):
-        self.fontePadrao = ("Arial", "11")
+
+        activeContainers = []
+        
+        objProblem = IntVar()
+        numberVariables = IntVar()
+        numberConstraints = IntVar()
+
+        numberVariables.set(1)
+        numberConstraints.set(2)
+
+        def clearActiveElements():
+            for container in activeContainers:
+                for element in container.winfo_children():
+                    element.destroy()
+
+        def objectiveProblem():
+            return objProblem
+
+        def numberOfVariables():
+            return numberVariables
+
+        def numberOfConstraints():
+            return numberConstraints
+
+        def modelProblem():
+            clearActiveElements()
+
+            print(objectiveProblem().get())
+            print(numberOfVariables().get())
+            print(numberOfConstraints().get())
+            
+            exp = "¹²³⁴⁵⁶⁷⁸⁹"
+            
+            for i in range(0, numberOfVariables().get()):
+
+                self.container = Canvas(self.secondContainer, width=200, height=20)
+                self.container.pack(side=LEFT)
+
+                self.variableNumberLabel = Label(self.container, text="x"+exp[i], font=self.standardFont, height=2, width=6)
+                self.variableNumberLabel["font"] = ("Arial", "14", "bold")
+                self.variableNumberLabel.pack()
+                
+                self.variableNumber = Entry(self.container)
+                self.variableNumber["width"] = 5
+                self.variableNumber["font"] = self.standardFont
+                self.variableNumber["textvariable"] = numberVariables
+                self.variableNumber["validate"] = "key"
+                self.variableNumber.pack(side=TOP)
+
+        def initialScreen():
+            self.max = Radiobutton(self.secondContainer, 
+            text="Min",
+            indicatoron = 0,
+            width = 10,
+            padx = 10, 
+            variable=objProblem, 
+            command=objectiveProblem,
+            value=0).pack(anchor=W, side=LEFT)
+
+            self.min = Radiobutton(self.secondContainer, 
+                text="Max",
+                indicatoron = 0,
+                width = 10,
+                padx = 10, 
+                variable=objProblem, 
+                command=objectiveProblem,
+                value=1).pack(anchor=W, side=LEFT)
+
+            self.variableNumberLabel = Label(self.thirdContainer, text="Numero de Variáveis", font=self.standardFont, height=2)
+            self.variableNumberLabel.pack(side=TOP)
+
+            self.variableNumber = Scale(self.thirdContainer)
+            self.variableNumber["width"] = 20
+            self.variableNumber["orient"] = HORIZONTAL
+            self.variableNumber["from_"] = 1
+            self.variableNumber["variable"] = numberVariables
+            self.variableNumber["to"] = 10
+            self.variableNumber.pack(side=TOP)
+
+            self.constraintsNumberLabel = Label(self.fourthContainer, text="Numero de Restrições", font=self.standardFont, height=2)
+            self.constraintsNumberLabel.pack(side=TOP)
+
+            self.constraintsNumber = Scale(self.fourthContainer)
+            self.constraintsNumber["width"] = 20
+            self.constraintsNumber["orient"] = HORIZONTAL
+            self.constraintsNumber["from_"] = 1
+            self.constraintsNumber["variable"] = numberConstraints
+            self.constraintsNumber["to"] = 20
+            self.constraintsNumber.pack(side=TOP)
+
+            self.continueButton = Button(self.fifthContainer)
+            self.continueButton["text"] = "Continuar"
+            self.continueButton["font"] = ("Calibri", "10")
+            self.continueButton["width"] = 12
+            self.continueButton["command"] = modelProblem
+            self.continueButton.pack()
+
+        self.standardFont = ("Arial", "11")
 
         self.firstContainer = Frame(master)
         self.firstContainer["pady"] = 20
@@ -13,66 +111,39 @@ class Application:
         self.secondContainer["padx"] = 100
         self.secondContainer["pady"] = 20
         self.secondContainer.pack()
+        activeContainers.append(self.secondContainer)
 
         self.thirdContainer = Frame(master)
         self.thirdContainer["padx"] = 80
         self.thirdContainer["pady"] = 20
         self.thirdContainer.pack()
+        activeContainers.append(self.thirdContainer)
 
         self.fourthContainer = Frame(master)
         self.fourthContainer["pady"] = 40
         self.fourthContainer.pack()
+        activeContainers.append(self.fourthContainer)
 
-        self.title = Label(self.firstContainer, text="Método Simplex - Duas Fases")
+        self.fifthContainer = Frame(master)
+        self.fifthContainer["pady"] = 40
+        self.fifthContainer.pack()
+        activeContainers.append(self.fifthContainer)
+
+        self.title = Label(self.firstContainer, text="Método Simplex - Fase 2")
         self.title["font"] = ("Arial", "16", "bold")
         self.title.pack(side=BOTTOM)
         self.title.pack()
 
-        self.problemObjective = Label(self.secondContainer, text="Objetivo do Problema", font=self.fontePadrao)
+        self.problemObjective = Label(self.secondContainer, text="Objetivo do Problema", font=self.standardFont)
         self.problemObjective["width"] = 20
         self.problemObjective["height"] = 2
-        self.problemObjective["font"] = self.fontePadrao
+        self.problemObjective["font"] = self.standardFont
         self.problemObjective.pack(side=TOP)
-        
-        v = IntVar()
 
-        def ShowChoice():
-            print(v.get())
-        
-        self.max = Radiobutton(self.secondContainer, 
-            text="Min",
-            indicatoron = 0,
-            width = 10,
-            padx = 10, 
-            variable=v, 
-            command=ShowChoice,
-            value=0).pack(anchor=W, side=LEFT)
-
-        self.min = Radiobutton(self.secondContainer, 
-            text="Max",
-            indicatoron = 0,
-            width = 10,
-            padx = 10, 
-            variable=v, 
-            command=ShowChoice,
-            value=1).pack(anchor=W, side=LEFT)
+        initialScreen()
             
-
-        self.constraintsNumberLabel = Label(self.thirdContainer, text="Numero de Restrições", font=self.fontePadrao, height=2)
-        self.constraintsNumberLabel.pack(side=TOP)
         
-        self.constraintsNumber = Entry(self.thirdContainer)
-        self.constraintsNumber["width"] = 15
-        self.constraintsNumber["font"] = self.fontePadrao
-        self.constraintsNumber["validate"] = "key"
-        self.constraintsNumber.pack(side=TOP)
 
-        self.continueButton = Button(self.fourthContainer)
-        self.continueButton["text"] = "Continuar"
-        self.continueButton["font"] = ("Calibri", "10")
-        self.continueButton["width"] = 12
-        # self.continueButton["command"] = changeScreen()
-        self.continueButton.pack()
 
 
 root = Tk()
