@@ -1,12 +1,12 @@
 from enum import Enum
 
-
 class modelObjective(Enum):
     max = 1
     min = -1
 
 base = []
-newBaseVariable = ()
+newBaseVariable = ("b", -1)
+solutionType = ""
 
 def simplex(objectiveFunction, constraints = ""):
     str = separateEquation(objectiveFunction)
@@ -44,6 +44,7 @@ def getConstraints():
     return constraints
 
 def pivoting(tableau: dict) -> tuple:
+    global newBaseVariable
     minValue = 0
     pivotColumn = 0
     pivotLine = 0
@@ -58,6 +59,7 @@ def pivoting(tableau: dict) -> tuple:
     return pivotColumn, pivotLine
 
 def ratioTest(tableau: dict, pivotColumn) -> int:
+    global solutionType
     minRatio = -1
     pivotLine = 0
     for lineIndex in range(len(tableau["b"])):
@@ -68,11 +70,14 @@ def ratioTest(tableau: dict, pivotColumn) -> int:
         if ratio > 0 and (ratio < minRatio or minRatio == -1):
             minRatio = ratio
             pivotLine = lineIndex
+    if minRatio == -1:
+        solutionType = "unbounded"
     return pivotLine
 
 def standardizeTableau(tableau: dict) -> dict:
-    # 1 = tableau[newBaseVariable[0]][newBaseVariable[1]] * x
-    # x = 1 / tableau[newBaseVariable[0]][newBaseVariable[1]]
+    global solutionType
+    if solutionType == "unbounded":
+        return tableau
     lineMultiplier = 1 / tableau[newBaseVariable[0]][newBaseVariable[1]]
     for key in tableau:
         tableau[key][newBaseVariable[1]] *= lineMultiplier
@@ -84,11 +89,27 @@ def standardizeTableau(tableau: dict) -> dict:
     return tableau
 
 def testOptimality(tableau: dict) -> bool:
+    global solutionType
+    if solutionType == "unbounded":
+        return True
     for key in tableau:
         if key != "b":
             if tableau[key][-1] < 0:
                 return False
+    if checkEndlessSolution(tableau):
+        solutionType = "endless"
+        return True
+    solutionType = "optimal"
     return True
+
+def checkEndlessSolution(tableau: dict) -> bool:
+    global solutionType
+    for key in tableau:
+        if key != "b" and key != newBaseVariable[0]:
+            if tableau[key][-1] == 0:
+                solutionType = "endless"
+                return True
+    return False
 
 if __name__ == "__main__":
     initialize()
