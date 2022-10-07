@@ -5,6 +5,9 @@ class modelObjective(Enum):
     max = 1
     min = -1
 
+base = []
+newBaseVariable = ()
+
 def simplex(objectiveFunction, constraints = ""):
     str = separateEquation(objectiveFunction)
     print(str)
@@ -40,13 +43,6 @@ def getConstraints():
     constraints = strConstraints.split()
     return constraints
 
-def testOptimality(tableau: dict) -> bool:
-    for key in tableau:
-        if key != "b":
-            if tableau[key][-1] < 0:
-                return False
-    return True
-
 def pivoting(tableau: dict) -> tuple:
     minValue = 0
     pivotColumn = 0
@@ -57,8 +53,9 @@ def pivoting(tableau: dict) -> tuple:
                 minValue = tableau[key][-1]
                 pivotColumn = key
     pivotLine = ratioTest(tableau, pivotColumn)
+    base[pivotLine] = pivotColumn
+    newBaseVariable = (pivotColumn, pivotLine)
     return pivotColumn, pivotLine
-    
 
 def ratioTest(tableau: dict, pivotColumn) -> int:
     minRatio = -1
@@ -72,6 +69,26 @@ def ratioTest(tableau: dict, pivotColumn) -> int:
             minRatio = ratio
             pivotLine = lineIndex
     return pivotLine
+
+def standardizeTableau(tableau: dict) -> dict:
+    # 1 = tableau[newBaseVariable[0]][newBaseVariable[1]] * x
+    # x = 1 / tableau[newBaseVariable[0]][newBaseVariable[1]]
+    lineMultiplier = 1 / tableau[newBaseVariable[0]][newBaseVariable[1]]
+    for key in tableau:
+        tableau[key][newBaseVariable[1]] *= lineMultiplier
+    for lineIndex in range(len(tableau[key])):
+        lineMultiplier = - tableau[newBaseVariable[0]][lineIndex] / tableau[newBaseVariable[0]][newBaseVariable[1]]
+        if lineIndex != newBaseVariable[1]:    
+            for key in tableau:
+                tableau[key][lineIndex] += tableau[key][newBaseVariable[1]] * lineMultiplier
+    return tableau
+
+def testOptimality(tableau: dict) -> bool:
+    for key in tableau:
+        if key != "b":
+            if tableau[key][-1] < 0:
+                return False
+    return True
 
 if __name__ == "__main__":
     initialize()
