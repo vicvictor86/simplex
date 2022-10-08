@@ -7,6 +7,9 @@ from matplotlib.pyplot import margins
 class Application:
     def __init__(self, master=None):
 
+        tableau = {}
+        base = []
+
         activeContainers = []
 
         valuesFunctionObjective = []
@@ -39,7 +42,9 @@ class Application:
 
         def modelProblem():
             clearActiveElements()
-
+            for i in range(numberOfVariables().get()):
+                tableau[f"x{i+1}"] = []
+            tableau["b"] = []
             print(objectiveProblem().get())
             print(numberOfVariables().get())
             print(numberOfConstraints().get())
@@ -134,8 +139,16 @@ class Application:
 
         def solveProblem():
             clearActiveElements()
-            for i in functionCoefficients():
-                print(i.get())
+            for coef in functionCoefficients():
+                tableau[f"x{functionCoefficients().index(coef)+1}"].append(coef.get())
+            for constraint in valuesConstraint:
+                for coef in constraint:
+                    tableau[f"x{constraint.index(coef)+1}"].append(coef.get())
+            for value in vectorB:
+                tableau["b"].append(value.get())
+            tableau["b"].append(0)
+
+            print(tableau)
 
         def initialScreen():
             self.max = Radiobutton(self.secondContainer, 
@@ -225,16 +238,14 @@ class Application:
         self.problemObjective.pack(side=TOP)
 
         initialScreen()
-            
-        
 
 
-
-root = Tk()
-width= root.winfo_screenwidth()  
-height= root.winfo_screenheight() 
-root.geometry("%dx%d" % (width, height)) 
-root.state(newstate="zoomed")
-root.title('Método Simplex')
-Application(root)
-root.mainloop()
+if __name__ == "__main__":
+    root = Tk()
+    width= root.winfo_screenwidth()  
+    height= root.winfo_screenheight() 
+    root.geometry("%dx%d" % (width, height)) 
+    root.state(newstate="zoomed")
+    root.title('Método Simplex')
+    Application(root)
+    root.mainloop()

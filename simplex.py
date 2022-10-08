@@ -1,5 +1,7 @@
 from enum import Enum
 
+from numpy import identity
+
 class modelObjective(Enum):
     max = 1
     min = -1
@@ -8,11 +10,36 @@ base = []
 newBaseVariable = ("b", -1)
 solutionType = ""
 
-def simplex(objectiveFunction, constraints = ""):
-    str = separateEquation(objectiveFunction)
-    print(str)
-    # print(objectiveFunction)
-    # print(constraints)
+def identityMatrix(dim):
+    matrix = []
+    for i in range(dim):
+        matrix.append([])
+        for j in range(dim):
+            if i == j:
+                matrix[i].append(1)
+            else:
+                matrix[i].append(0)
+    return matrix
+
+def initializeBaseVariables(tableau: dict):
+    filledBase = [False] * (len(tableau["b"]) - 1)
+    identity = identityMatrix(len(tableau["b"]) - 1)
+    for key in tableau:
+        if key != "b":
+            for i in range(len(tableau["b"]) - 1):
+                if tableau[key][:len(tableau["b"]) - 1] == identity[i] and filledBase[i] == False:
+                    base.append(key)
+                    filledBase[i] = True
+    
+
+def simplex(tableau: dict):
+    finalTableau = tableau
+    initializeBaseVariables(finalTableau)
+    while (testOptimality(finalTableau) == False):
+        newBaseVariable = pivoting(finalTableau)
+        finalTableau = standardizeTableau(finalTableau)
+    return finalTableau, solutionType
+
     
 def separateEquation(equation):
     list = []
@@ -112,4 +139,16 @@ def checkEndlessSolution(tableau: dict) -> bool:
     return False
 
 if __name__ == "__main__":
-    initialize()
+    tableau = {
+        "x1" : [1, 0, 1, -5],
+        "x2" : [0, 1, 2, -2],
+        "x3" : [1, 0, 0, 0],
+        "x4" : [0, 1, 0, 0],
+        "x5" : [0, 0, 1, 0],
+        "b" : [3, 4, 9, 0]
+    }
+
+    tableauSol, solution = simplex(tableau)
+    print(tableau)
+    print(solution)
+    
