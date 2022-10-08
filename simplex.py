@@ -105,7 +105,7 @@ def testOptimality(tableau: dict) -> bool:
 def checkEndlessSolution(tableau: dict) -> bool:
     global solutionType
     for key in tableau:
-        if key != "b" and key != newBaseVariable[0]:
+        if key != "b" and key not in base:
             if tableau[key][-1] == 0:
                 solutionType = "endless"
                 return True
