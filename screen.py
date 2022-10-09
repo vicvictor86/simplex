@@ -1,14 +1,17 @@
 from msilib import RadioButtonGroup
 from re import A
 from tkinter import *
+from matplotlib import container
+from simplex import *
 
 from matplotlib.pyplot import margins
 
 class Application:
     def __init__(self, master=None):
 
+        exp = "₁₂₃₄₅₆₇₈₉"
+
         tableau = {}
-        base = []
 
         activeContainers = []
 
@@ -42,14 +45,21 @@ class Application:
 
         def modelProblem():
             clearActiveElements()
+            
+            strObjetiveProblem = ""
+            if objectiveProblem().get() == 1:
+                strObjetiveProblem = "Maximizar"
+            else:
+                strObjetiveProblem = "Minimizar"
+
+            self.title = Label(self.firstContainer, text=f"Objetivo do Problema: {strObjetiveProblem}")
+            self.title["font"] = ("Arial", "16")
+            self.title.pack(side=BOTTOM)
+            self.title.pack()
+
             for i in range(numberOfVariables().get()):
                 tableau[f"x{i+1}"] = []
             tableau["b"] = []
-            print(objectiveProblem().get())
-            print(numberOfVariables().get())
-            print(numberOfConstraints().get())
-            
-            exp = "¹²³⁴⁵⁶⁷⁸⁹"
 
             self.firstCanva = Canvas(self.secondContainer, width=400, height=20)
             self.firstCanva.pack(side=LEFT)
@@ -67,7 +77,7 @@ class Application:
 
                 if i < numberOfVariables().get():
                     self.variableNumberLabel = Label(self.firstCanva, text="x"+exp[i], font=self.standardFont, height=2, width=6)
-                    self.variableNumberLabel["font"] = ("Arial", "14", "bold")
+                    self.variableNumberLabel["font"] = ("Helvetica", "18", "bold")
                     self.variableNumberLabel.grid(row=1, column=i+1)
                     
                     self.variableNumber = Entry(self.firstCanva)
@@ -108,7 +118,7 @@ class Application:
                         
                         self.variableNumber.grid(row=3+i, column=j+1)
                     elif(j == numberOfVariables().get()):
-                        mb =  Menubutton ( self.firstCanva, text="≤", relief=RAISED )
+                        mb =  Menubutton ( self.firstCanva, text="=", relief=RAISED )
                         mb.grid(row=3+i, column=j+1)
                         mb.menu =  Menu ( mb, tearoff = 0 )
                         mb["menu"] =  mb.menu
@@ -116,8 +126,8 @@ class Application:
                         # biggerEqual = IntVar()
                         # equal = IntVar()
                         # mb.menu.add_checkbutton ( label="≥", variable=biggerEqual )
-                        # mb.menu.add_checkbutton ( label="=", variable=equal )
-                    elif(j == numberOfVariables().get() + 1):
+                        # mb.menu.add_checkbutton ( label="≤", variable=equal )
+                    elif(j > numberOfVariables().get()):
                         self.variableNumber = Entry(self.firstCanva)
                         aux = IntVar()
                         vectorB.append(aux)
@@ -139,16 +149,141 @@ class Application:
 
         def solveProblem():
             clearActiveElements()
-            for coef in functionCoefficients():
-                tableau[f"x{functionCoefficients().index(coef)+1}"].append(coef.get())
             for constraint in valuesConstraint:
                 for coef in constraint:
                     tableau[f"x{constraint.index(coef)+1}"].append(coef.get())
+            for coef in functionCoefficients():
+                tableau[f"x{functionCoefficients().index(coef)+1}"].append(coef.get())
             for value in vectorB:
                 tableau["b"].append(value.get())
             tableau["b"].append(0)
 
-            print(tableau)
+            # objective problem is max
+            if objectiveProblem().get() == 1:
+                for i in range(0, numberOfVariables().get()):
+                    tableau[f"x{i+1}"][numberOfConstraints().get()] *= -1
+                tableau[f"b"][numberOfConstraints().get()] *= -1
+
+            tableauFinal, solution = simplex(tableau)
+
+            self.firstCanva = Canvas(self.secondContainer, width=400, height=20)
+            self.firstCanva.pack(side=LEFT)
+
+            if solution == "optimal":
+                self.e = Entry(self.firstCanva, width=10, justify="center",
+                                    font=('Arial',16)) 
+                self.e.insert(END, "Base")
+                self.e.grid(row=0, column=0) 
+                self.e["state"] = "readonly"
+
+                optimalZ = tableauFinal[f"b"][numberOfConstraints().get()]	
+
+                
+                if objectiveProblem().get() == 1:
+                    for value in tableauFinal:
+                        if tableauFinal[value][-1] != 0:
+                            tableauFinal[value][-1] *= -1
+
+                for i in range(0, numberOfVariables().get() + 1):
+                    if i < numberOfVariables().get():
+                        if i < len(base):
+                            self.e = Entry(self.firstCanva, width=10, justify="center",
+                                            font=('Helvetica', 16, 'bold'))
+                            if i < len(base):
+                                self.e.insert(END, "x" + exp[int(base[i][1:])-1])
+                            else:
+                                self.e.insert(END, " ")
+                            self.e.grid(row=i+1, column=0) 
+                            self.e["state"] = "readonly"
+                        elif i == len(base):
+                            self.e = Entry(self.firstCanva, width=10, justify="center",
+                                            font=('Helvetica', 16))
+                            self.e.insert(END, " ")
+                            self.e.grid(row=i+1, column=0) 
+                            self.e["state"] = "readonly"
+
+                        self.e = Entry(self.firstCanva, width=10,justify="center",
+                                    font=('Helvetica',16, "bold")) 
+                        
+                        self.e.insert(END, "x"+exp[i])
+                        self.e.grid(row=0, column=i+1) 
+                        self.e["state"] = "readonly"
+                    elif i == numberOfVariables().get():
+                        self.e = Entry(self.firstCanva, width=10,justify="center",
+                                    font=('Helvetica',16)) 
+                        self.e.insert(END, "b")
+                        self.e.grid(row=0, column=i+1) 
+                        self.e["state"] = "readonly"
+                    for constraint in range(0, numberOfConstraints().get() + 1):
+                        if list(tableauFinal.keys())[i] != "b":
+                            self.e = Entry(self.firstCanva, width=10,justify="center",
+                                        font=('Helvetica',16)) 
+                            valueFloat = tableauFinal[f"x{i+1}"][constraint]
+                            self.e.insert(END, f'{valueFloat:.1f}')
+                            self.e.grid(row=constraint+1, column=i+1) 
+                            self.e["state"] = "readonly"
+                        else:
+                            self.e = Entry(self.firstCanva, width=10,justify="center",
+                                        font=('Helvetica',16)) 
+                            
+                            valueFloat = tableauFinal[f"b"][constraint]
+                            
+                            if constraint < numberOfConstraints().get():
+                                self.e.insert(END, f"{valueFloat:.1f}")
+                            else:
+                                if tableauFinal[f"b"][constraint] > 0:
+                                    self.e.insert(END, "Z+" + f"{valueFloat:.1f}")
+                                    optimalZ *= -1
+                                elif tableauFinal[f"b"][constraint] < 0:
+                                    self.e.insert(END, "Z" + f"{valueFloat:.1f}")
+                                else:
+                                    self.e.insert(END, "Z")
+                            self.e.grid(row=constraint+1, column=i+1) 
+                            self.e["state"] = "readonly"
+
+                self.secondCanva = Canvas(self.thirdContainer, width=400, height=20)
+                self.secondCanva.pack(side=LEFT)
+
+                self.e = Label(self.secondCanva, text="Solução Ótima",
+                                    font=('Arial',14, "bold")) 
+                self.e.grid(row=0, column=1) 
+                
+                self.e = Label(self.secondCanva, width=10, justify="center",text=f"Z* = {optimalZ:.1f}",
+                                font=('Helvetica',16)) 
+                # self.e.insert(END, f"Z* = {(tableauFinal['b'][numberOfConstraints().get()] * -1):.1f}")
+                self.e.grid(row=1, column=1) 
+                # self.e["state"] = "readonly"
+
+                self.e = Label(self.secondCanva, text="Variáveis básicas",
+                                    font=('Arial',14)) 
+                self.e.grid(row=2, column=1) 
+                for i in range(len(base)):
+                    self.e = Label(self.secondCanva, width=10, justify="center", text=f"x{exp[int(base[i][1:])-1]}* = {tableauFinal['b'][i]:.1f}",
+                                    font=('Helvetica',16)) 
+                    # self.e.insert(END, f"x{exp[int(base[i][1:])-1]}* = {tableauFinal['b'][i]:.1f}")
+                    self.e.grid(row=3, column=i) 
+                    # self.e["state"] = "readonly"
+                self.e = Label(self.secondCanva, text="Variáveis não-básicas",
+                                    font=('Arial',14)) 
+                self.e.grid(row=4, column=1) 
+                column = 0
+                for i in range(0, numberOfVariables().get()):
+                    if f"x{i+1}" not in base:
+                        self.e = Label(self.secondCanva, width=10,justify="center", text=f"x{exp[i]}* = 0",
+                                        font=('Helvetica',16)) 
+                        # self.e.insert(END, f"x{exp[i]}* = 0")
+                        self.e.grid(row=5, column=column) 
+                        column += 1
+                        # self.e["state"] = "readonly"
+
+            elif solution == "unbounded":
+                self.e = Label(self.firstCanva, justify="center", text="Problema tem solução ilimitada.",
+                                    font=('Arial',16)) 
+                self.e.grid(row=0, column=0) 
+            elif solution == "endless":
+                self.e = Label(self.firstCanva, justify="center", text="Problema tem infinitas soluções.",
+                                    font=('Arial',16)) 
+                self.e.grid(row=0, column=0) 
 
         def initialScreen():
             self.max = Radiobutton(self.secondContainer, 
@@ -177,7 +312,7 @@ class Application:
             self.variableNumber["orient"] = HORIZONTAL
             self.variableNumber["from_"] = 1
             self.variableNumber["variable"] = numberVariables
-            self.variableNumber["to"] = 10
+            self.variableNumber["to"] = 9
             self.variableNumber.pack(side=TOP)
 
             self.constraintsNumberLabel = Label(self.fourthContainer, text="Numero de Restrições", font=self.standardFont, height=2)
@@ -188,7 +323,7 @@ class Application:
             self.constraintsNumber["orient"] = HORIZONTAL
             self.constraintsNumber["from_"] = 1
             self.constraintsNumber["variable"] = numberConstraints
-            self.constraintsNumber["to"] = 20
+            self.constraintsNumber["to"] = 9
             self.constraintsNumber.pack(side=TOP)
 
             self.continueButton = Button(self.fifthContainer)
@@ -227,8 +362,8 @@ class Application:
         activeContainers.append(self.fifthContainer)
 
         self.title = Label(self.firstContainer, text="Método Simplex - Fase 2")
-        self.title["font"] = ("Arial", "16", "bold")
-        self.title.pack(side=BOTTOM)
+        self.title["font"] = ("Arial", "20", "bold")
+        self.title.pack(side=TOP)
         self.title.pack()
 
         self.problemObjective = Label(self.secondContainer, text="Objetivo do Problema", font=self.standardFont)
