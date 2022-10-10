@@ -30,7 +30,6 @@ def initializeBaseVariables(tableau: dict):
                 if tableau[key][:len(tableau["b"]) - 1] == identity[i] and filledBase[i] == False:
                     base.append(key)
                     filledBase[i] = True
-    
 
 def simplex(tableau: dict):
     finalTableau = tableau
